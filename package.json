@@ -7,11 +7,13 @@
   "devDependencies": {
     "lerna": "~6.6.1"
   },
-  "scripts": {
+  "scripts": {    
+    "dev": "docker compose up -d",
     "start": "lerna run start",
     "build": "lerna run build",
     "lint": "lerna run lint",
     "test": "lerna run test",
+    "docker:install:osx": "docker pull --platform linux/x86_64 mysql; cd apps/platform; npm i",
     "docker:build": "lerna run docker:build",
     "docker:build:push": "lerna run docker:build:push",
     "analyze:ui:bundle": "lerna run build && npx source-map-explorer './apps/ui/build/static/js/*.js'",

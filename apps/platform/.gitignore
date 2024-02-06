@@ -111,3 +111,6 @@ build
 # Uploads
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+# Cross-Platform Compatability
+package-lock.json
