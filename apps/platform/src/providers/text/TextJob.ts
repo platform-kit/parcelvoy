@@ -7,6 +7,7 @@ import { loadSendJob, messageLock, notifyJourney, prepareSend } from '../Message
 import { loadTextChannel } from '.'
 import { releaseLock } from '../../config/scheduler'
 import App from '../../app'
+import { UnsubscribeTextError } from './TextError'
 
 export default class TextJob extends Job {
     static $name = 'text'
@@ -44,12 +45,20 @@ export default class TextJob extends Job {
         try {
             await channel.send(template, data)
         } catch (error: any) {
+
+            // On error, mark as failed and notify just in case
             await updateSendState({
                 campaign,
                 user,
                 user_step_id: trigger.user_step_id,
                 state: 'failed',
             })
+
+            // Dont bubble up unsubscribes, only fail
+            if (!(error instanceof UnsubscribeTextError)) {
+                App.main.error.notify(error)
+            }
+            return
         }
 
         // Update send record

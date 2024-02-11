@@ -2,14 +2,14 @@ import Koa from 'koa'
 import koaBody from 'koa-body'
 import cors from '@koa/cors'
 import serve from 'koa-static'
-import controllers, { register } from './config/controllers'
+import controllers, { SubRouter, register } from './config/controllers'
 import { RequestError } from './core/errors'
 import { logger } from './config/logger'
 import Router from '@koa/router'
 
 export default class Api extends Koa {
-    router = new Router({ prefix: '/api' })
-    controllers?: Record<string, Router>
+    router = new Router()
+    controllers?: Record<string, SubRouter>
 
     constructor(
         public app: import('./app').default,
@@ -71,9 +71,16 @@ export default class Api extends Koa {
         this.register(...Object.values(this.controllers))
     }
 
-    register(...routers: Router[]) {
-        const root = register(this.router, ...routers)
-        this.use(root.routes())
-            .use(root.allowedMethods())
+    register(...routers: SubRouter[]) {
+        const apiRouter = new Router({ prefix: '/api' })
+        for (const router of routers.filter(r => !r.global)) {
+            register(apiRouter, router)
+        }
+        register(this.router, apiRouter)
+        for (const router of routers.filter(r => r.global)) {
+            register(this.router, router)
+        }
+        this.use(this.router.routes())
+            .use(this.router.allowedMethods())
     }
 }
